@@ -7,49 +7,67 @@ def main():
 
     match command:
         case "parse":
-            print(f"version({args[0]}) => tokens: {parse(args[0])}")
+            version = Version(args[0])
+            print(f"version({version.raw}) => tokens: {version.tokens}")
 
         case "compare":
-            print(f"{args[0]} {compare(args[0], args[1])} {args[1]}")
+            version_a = Version(args[0])
+            version_b = Version(args[1])
+            print(f"{version_a.raw} {compare(version_a, version_b)} {version_b.raw}")
 
         case "sort":
             print(", ".join(sort(args)))
 
         case "parse_req":
-            parsed_requirement = parse_req(args[0])
+            requirement = Requirement(args[0])
             print(
-                f'Requirement(name="{parsed_requirement[0]}", range="{parsed_requirement[1]}")'
+                f'Requirement(name="{requirement.name}", range="{requirement.range}")'
             )
 
 
-def parse(version: str) -> list:
-    tokens = list()
-    for raw_token in version.split("."):
-        if raw_token.isdigit():
-            raw_token = int(raw_token)
-        tokens.append(raw_token)
-    return tokens
+class Version:
+    raw: str = ""
+    tokens: list = []
+
+    def __init__(self, version_raw: str):
+        self.raw = version_raw
+        self.tokens = self.parse()
+
+    def parse(self) -> list:
+        tokens = list()
+        for raw_token in self.raw.split("."):
+            if raw_token.isdigit():
+                raw_token = int(raw_token)
+            tokens.append(raw_token)
+        return tokens
 
 
-def parse_req(requirement: str) -> list:
-    parsed_requirement = requirement.split("-")
-    parsed_requirement[1] = "==" + parsed_requirement[1]
-    return parsed_requirement
+class Requirement:
+    name = ""
+    range = ""
+
+    def __init__(self, requirement: str):
+        parsed_requirement = self.parse_req(requirement)
+        self.name = parsed_requirement[0]
+        self.range = parsed_requirement[1]
+
+    def parse_req(self, requirement: str) -> list:
+        parsed_requirement = requirement.split("-")
+        parsed_requirement[1] = "==" + parsed_requirement[1]
+        return parsed_requirement
 
 
 # modify to use enums
-def compare(a: str, b: str) -> str:
-    a_tokens = parse(a)
-    b_tokens = parse(b)
-    for i in range(min(len(a_tokens), len(b_tokens))):
-        if isinstance(a_tokens[i], str):
-            a_tokens[i] = -1
-        if isinstance(a_tokens[i], str):
-            b_tokens[i] = -1
+def compare(a: Version, b: Version) -> str:
+    for i in range(min(len(a.tokens), len(b.tokens))):
+        if isinstance(a.tokens[i], str):
+            a.tokens[i] = -1
+        if isinstance(a.tokens[i], str):
+            b.tokens[i] = -1
 
-        if a_tokens[i] == b_tokens[i]:
+        if a.tokens[i] == b.tokens[i]:
             continue
-        if a_tokens[i] < b_tokens[i]:
+        if a.tokens[i] < b.tokens[i]:
             return "<"
         else:
             return ">"
