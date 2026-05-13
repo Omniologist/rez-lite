@@ -15,6 +15,12 @@ def main():
         case "sort":
             print(", ".join(sort(args)))
 
+        case "parse_req":
+            parsed_requirement = parse_req(args[0])
+            print(
+                f'Requirement(name="{parsed_requirement[0]}", range="{parsed_requirement[1]}")'
+            )
+
 
 def parse(version: str) -> list:
     tokens = list()
@@ -23,6 +29,12 @@ def parse(version: str) -> list:
             raw_token = int(raw_token)
         tokens.append(raw_token)
     return tokens
+
+
+def parse_req(requirement: str) -> list:
+    parsed_requirement = requirement.split("-")
+    parsed_requirement[1] = "==" + parsed_requirement[1]
+    return parsed_requirement
 
 
 # modify to use enums
