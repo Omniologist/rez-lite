@@ -12,22 +12,42 @@ def main():
         case "compare":
             print(f"{args[0]} {compare(args[0], args[1])} {args[1]}")
 
+        case "sort":
+            print(", ".join(sort(args)))
 
-def parse(version: str):
-    tokens = [int(c) for c in version.split(".")]
+
+def parse(version: str) -> list:
+    tokens = list()
+    for raw_token in version.split("."):
+        if raw_token.isdigit():
+            raw_token = int(raw_token)
+        tokens.append(raw_token)
     return tokens
 
 
 # modify to use enums
-def compare(a, b):
-    a_tokenized = parse(a)
-    b_tokenized = parse(b)
-    if a_tokenized < b_tokenized:
-        return "<"
-    elif a_tokenized > b_tokenized:
-        return ">"
-    elif a_tokenized == b_tokenized:
-        return "=="
+def compare(a: str, b: str) -> str:
+    a_tokens = parse(a)
+    b_tokens = parse(b)
+    for i in range(min(len(a_tokens), len(b_tokens))):
+        if isinstance(a_tokens[i], str):
+            a_tokens[i] = -1
+        if isinstance(a_tokens[i], str):
+            b_tokens[i] = -1
+
+        if a_tokens[i] == b_tokens[i]:
+            continue
+        if a_tokens[i] < b_tokens[i]:
+            return "<"
+        else:
+            return ">"
+
+    return "=="
+
+
+def sort(versions: list) -> list:
+    versions = versions[0].split(",")
+    return sorted(versions)
 
 
 main()
