@@ -65,29 +65,37 @@ class Requirement:
         name, raw, version, operator, upper_bound = self.parse_req(requirement)
         self.name = name
         self.raw = raw
-        self.version = Version(version)
+        self.version = version
         self.operator = operator
         self.upper_bound = upper_bound
-        if upper_bound:
+        if self.upper_bound:
             self.match = lambda b: (
                 (compare(self.version, b) in self.operator)
                 and compare(self.version, self.version.increment(self.upper_bound))
             )
-        else:
+        elif self.version:
             self.match = lambda b: compare(self.version, b) in self.operator
+        else:
+            self.match = lambda b: True
 
     def parse_req(self, requirement: str) -> tuple:
         raw = requirement
-        name, suffix = requirement.split("-")
+        name, _, suffix = requirement.partition("-")
         version, operator, suffix = suffix.partition("+")
         _, lt, upper_bound = suffix.partition("<")
         if operator == "+":
             operator = compare_op.lte
-        else:
+        elif version:
             operator = compare_op.equal
             raw = f"=={version}"
 
-        return (name, raw, version, operator, upper_bound or None)
+        return (
+            name,
+            raw,
+            Version(version) if version else None,
+            operator or None,
+            upper_bound or None,
+        )
 
 
 # modify to use enums
