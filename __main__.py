@@ -21,9 +21,14 @@ def main():
 
         case "parse_req":
             requirement = Requirement(args[0])
-            print(
-                f'Requirement(name="{requirement.name}", range="{requirement.operator}{requirement.version.raw}")'
+            print(f'Requirement(name="{requirement.name}", range="{requirement.raw}")')
+
+        case "matches":
+            requirement = Requirement(args[0])
+            matches = (
+                compare(requirement.version, Version(args[1])) in requirement.operator
             )
+            print(f"{requirement.raw} : {args[1]} => {'YES' if matches else 'NO'}")
 
 
 class compare_op(enum.StrEnum):
@@ -53,20 +58,25 @@ class Version:
 
 class Requirement:
     def __init__(self, requirement: str):
-        name, version, operator, upper_bound = self.parse_req(requirement)
+        name, raw, version, operator, upper_bound = self.parse_req(requirement)
         self.name = name
+        self.raw = raw
         self.version = Version(version)
         self.operator = operator
         self.upper_bound = upper_bound
 
     def parse_req(self, requirement: str) -> tuple:
+        raw = requirement
         name, suffix = requirement.split("-")
-        version, operator, upper_bound = suffix.partition("+<")
-        if operator == "+" or operator == "+<":
+        version, operator, suffix = suffix.partition("+")
+        _, lt, upper_bound = suffix.partition("<")
+        if operator == "+":
             operator = compare_op.lte
         else:
             operator = compare_op.equal
-        return (name, version, operator, upper_bound or None)
+            raw = f"=={version}"
+
+        return (name, raw, version, operator, upper_bound or None)
 
 
 # modify to use enums
