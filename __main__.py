@@ -1,4 +1,5 @@
 import enum
+import runpy
 import sys
 
 
@@ -28,6 +29,10 @@ def main():
             print(
                 f"{requirement.raw} : {args[1]} => {'YES' if requirement.match(Version(args[1])) else 'NO'}"
             )
+
+        case "info":
+            package = runpy.run_path(args[0])
+            print(f"Package: {package['name']}-{package['version']}")
 
 
 class compare_op(enum.StrEnum):
