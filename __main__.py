@@ -25,10 +25,9 @@ def main():
 
         case "matches":
             requirement = Requirement(args[0])
-            matches = (
-                compare(requirement.version, Version(args[1])) in requirement.operator
+            print(
+                f"{requirement.raw} : {args[1]} => {'YES' if requirement.match(Version(args[1])) else 'NO'}"
             )
-            print(f"{requirement.raw} : {args[1]} => {'YES' if matches else 'NO'}")
 
 
 class compare_op(enum.StrEnum):
@@ -55,6 +54,11 @@ class Version:
             tokens.append(raw_token)
         return tokens
 
+    def increment(self, num: int) -> Version:
+        tokens = self.tokens.copy()
+        tokens[1] += num
+        return Version(".".join(tokens))
+
 
 class Requirement:
     def __init__(self, requirement: str):
@@ -64,6 +68,13 @@ class Requirement:
         self.version = Version(version)
         self.operator = operator
         self.upper_bound = upper_bound
+        if upper_bound:
+            self.match = lambda b: (
+                (compare(self.version, b) in self.operator)
+                and compare(self.version, self.version.increment(self.upper_bound))
+            )
+        else:
+            self.match = lambda b: compare(self.version, b) in self.operator
 
     def parse_req(self, requirement: str) -> tuple:
         raw = requirement
