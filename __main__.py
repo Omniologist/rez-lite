@@ -33,6 +33,8 @@ def main():
         case "info":
             package = runpy.run_path(args[0])
             print(f"Package: {package['name']}-{package['version']}")
+            if "requires" in package.keys():
+                print(f"Requires: {', '.join(package['requires'])}")
 
 
 class compare_op(enum.StrEnum):
