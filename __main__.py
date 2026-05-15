@@ -35,6 +35,8 @@ def main():
             print(f"Package: {package['name']}-{package['version']}")
             if "requires" in package.keys():
                 print(f"Requires: {', '.join(package['requires'])}")
+            if "commands" in package.keys():
+                print(package["commands"])
 
 
 class compare_op(enum.StrEnum):
