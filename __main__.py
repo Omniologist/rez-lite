@@ -1,3 +1,4 @@
+import enum
 import sys
 
 
@@ -21,8 +22,16 @@ def main():
         case "parse_req":
             requirement = Requirement(args[0])
             print(
-                f'Requirement(name="{requirement.name}", range="{requirement.range}")'
+                f'Requirement(name="{requirement.name}", range="{requirement.operator}{requirement.version.raw}")'
             )
+
+
+class compare_op(enum.StrEnum):
+    equal = "=="
+    lt = "<"
+    gt = ">"
+    lte = "<="
+    gte = ">="
 
 
 class Version:
@@ -43,23 +52,27 @@ class Version:
 
 
 class Requirement:
-    name = ""
-    range = ""
-
     def __init__(self, requirement: str):
-        parsed_requirement = self.parse_req(requirement)
-        self.name = parsed_requirement[0]
-        self.range = parsed_requirement[1]
+        name, version, operator, upper_bound = self.parse_req(requirement)
+        self.name = name
+        self.version = Version(version)
+        self.operator = operator
+        self.upper_bound = upper_bound
 
-    def parse_req(self, requirement: str) -> list:
-        parsed_requirement = requirement.split("-")
-        parsed_requirement[1] = "==" + parsed_requirement[1]
-        return parsed_requirement
+    def parse_req(self, requirement: str) -> tuple:
+        name, suffix = requirement.split("-")
+        version, operator, upper_bound = suffix.partition("+<")
+        if operator == "+" or operator == "+<":
+            operator = compare_op.lte
+        else:
+            operator = compare_op.equal
+        return (name, version, operator, upper_bound or None)
 
 
 # modify to use enums
-def compare(a: Version, b: Version) -> str:
+def compare(a: Version, b: Version) -> compare_op:
     for i in range(min(len(a.tokens), len(b.tokens))):
+        # converts alpha chars to -1 to make them rank lower
         if isinstance(a.tokens[i], str):
             a.tokens[i] = -1
         if isinstance(a.tokens[i], str):
@@ -68,11 +81,11 @@ def compare(a: Version, b: Version) -> str:
         if a.tokens[i] == b.tokens[i]:
             continue
         if a.tokens[i] < b.tokens[i]:
-            return "<"
+            return compare_op.lt
         else:
-            return ">"
+            return compare_op.gt
 
-    return "=="
+    return compare_op.equal
 
 
 def sort(versions: list) -> list:
