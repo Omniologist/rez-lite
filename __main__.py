@@ -41,15 +41,23 @@ def main():
                 print(package["commands"])
 
         case "scan":
-            packages = defaultdict(list)
-            p = Path(args[0])
-            for package in p.iterdir():
-                sp = Path(package)
-                for package_version in sp.iterdir():
-                    package, version = str(package_version).split("/")[-2:]
-                    packages[package].append(version)
-            for key in packages.keys():
-                print(f"{key}: {', '.join(sorted(packages[key]))}")
+            p = PackageRepository(args[0])
+            p.summarise_repo()
+
+
+class PackageRepository:
+    def __init__(self, repoPath):
+        self.packages = defaultdict(list)
+        p = Path(repoPath)
+        for package in p.iterdir():
+            sp = Path(package)
+            for package_version in sp.iterdir():
+                package, version = str(package_version).split("/")[-2:]
+                self.packages[package].append(version)
+
+    def summarise_repo(self):
+        for key in self.packages.keys():
+            print(f"{key}: {', '.join(sorted(self.packages[key]))}")
 
 
 class compare_op(enum.StrEnum):
