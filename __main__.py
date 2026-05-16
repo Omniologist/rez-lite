@@ -1,6 +1,8 @@
 import enum
 import runpy
 import sys
+from collections import defaultdict
+from pathlib import Path
 
 
 def main():
@@ -37,6 +39,17 @@ def main():
                 print(f"Requires: {', '.join(package['requires'])}")
             if "commands" in package.keys():
                 print(package["commands"])
+
+        case "scan":
+            packages = defaultdict(list)
+            p = Path(args[0])
+            for package in p.iterdir():
+                sp = Path(package)
+                for package_version in sp.iterdir():
+                    package, version = str(package_version).split("/")[-2:]
+                    packages[package].append(version)
+            for key in packages.keys():
+                print(f"{key}: {', '.join(sorted(packages[key]))}")
 
 
 class compare_op(enum.StrEnum):
