@@ -20,7 +20,7 @@ def main():
             print(f"{version_a.raw} {compare(version_a, version_b)} {version_b.raw}")
 
         case "sort":
-            print(", ".join(sort(args)))
+            print(", ".join(sort(args[0].split(","))))
 
         case "parse_req":
             requirement = Requirement(args[0])
@@ -44,6 +44,12 @@ def main():
             p = PackageRepository(args[0])
             p.summarise_repo()
 
+        case "versions":
+            p = PackageRepository(args[0])
+            versions = sort(p.package_versions(args[1]))
+
+            print(f"{args[1]}: {'. '.join(versions)}")
+
 
 class PackageRepository:
     def __init__(self, repoPath):
@@ -58,6 +64,9 @@ class PackageRepository:
     def summarise_repo(self):
         for key in self.packages.keys():
             print(f"{key}: {', '.join(sorted(self.packages[key]))}")
+
+    def package_versions(self, package):
+        return self.packages[package]
 
 
 class compare_op(enum.StrEnum):
@@ -148,7 +157,6 @@ def compare(a: Version, b: Version) -> compare_op:
 
 
 def sort(versions: list) -> list:
-    versions = versions[0].split(",")
     return sorted(versions)
 
 
