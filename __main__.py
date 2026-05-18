@@ -157,7 +157,10 @@ def compare(a: Version, b: Version) -> compare_op:
 
 
 def sort(versions: list) -> list:
-    return sorted(versions)
+    return sorted(
+        versions,
+        key=lambda x: [-1 if token is not int else x for token in Version(x).tokens],
+    )
 
 
 main()
