@@ -60,8 +60,10 @@ def main():
                     break
 
         case "resolve":
-            p = p = PackageRepository(args[0])
-            print(f"Resolved:\n{p.resolve(args[1])}")
+            p = PackageRepository(args[0])
+            print("Resolved: ")
+            for resolved in p.resolve(args[1:]):
+                print(resolved)
 
 
 class PackageRepository:
@@ -81,12 +83,16 @@ class PackageRepository:
     def package_versions(self, package):
         return self.packages[package]
 
-    def resolve(self, package):
-        requirement = Requirement(package)
-        versions = sort(self.package_versions(requirement.name))
-        for version in reversed(versions):
-            if requirement.match(Version(version)):
-                return f"{requirement.name}-{version}"
+    def resolve(self, packages):
+        resolved = list()
+        for package in packages:
+            requirement = Requirement(package)
+            versions = sort(self.package_versions(requirement.name))
+            for version in reversed(versions):
+                if requirement.match(Version(version)):
+                    resolved.append(f"{requirement.name}-{version}")
+                    break
+        return resolved
 
 
 class compare_op(enum.StrEnum):
@@ -180,7 +186,9 @@ def sort(versions: list) -> list:
     return sorted(
         versions,
         key=lambda x: [
-            x if isinstance(token, int) else -1 for token in Version(x).tokens
+            # x if isinstance(token, int) else -1 for
+            token if isinstance(token, int) else -1
+            for token in Version(x).tokens
         ],
     )
 
