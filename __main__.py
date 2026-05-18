@@ -59,6 +59,10 @@ def main():
                     print(f"{requirement.name}-{version}")
                     break
 
+        case "resolve":
+            p = p = PackageRepository(args[0])
+            print(f"Resolved:\n{p.resolve(args[1])}")
+
 
 class PackageRepository:
     def __init__(self, repoPath):
@@ -76,6 +80,13 @@ class PackageRepository:
 
     def package_versions(self, package):
         return self.packages[package]
+
+    def resolve(self, package):
+        requirement = Requirement(package)
+        versions = sort(self.package_versions(requirement.name))
+        for version in reversed(versions):
+            if requirement.match(Version(version)):
+                return f"{requirement.name}-{version}"
 
 
 class compare_op(enum.StrEnum):
