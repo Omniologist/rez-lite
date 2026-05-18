@@ -132,7 +132,7 @@ class Requirement:
         version, operator, suffix = suffix.partition("+")
         _, lt, upper_bound = suffix.partition("<")
         if operator == "+":
-            operator = compare_op.lte, compare_op.equal
+            operator = compare_op.lt, compare_op.equal
         elif version:
             operator = compare_op.equal
             raw = f"=={version}"
