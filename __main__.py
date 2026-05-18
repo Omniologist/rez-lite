@@ -50,6 +50,15 @@ def main():
 
             print(f"{args[1]}: {'. '.join(versions)}")
 
+        case "latest":
+            p = PackageRepository(args[0])
+            requirement = Requirement(args[1])
+            versions = sort(p.package_versions(requirement.name))
+            for version in reversed(versions):
+                if requirement.match(Version(version)):
+                    print(f"{requirement.name}-{version}")
+                    break
+
 
 class PackageRepository:
     def __init__(self, repoPath):
@@ -110,7 +119,7 @@ class Requirement:
         if self.upper_bound:
             self.match = lambda b: (
                 (compare(self.version, b) in self.operator)
-                and compare(self.version, self.version.increment(self.upper_bound))
+                and (compare(b, self.upper_bound) is compare_op.lt)
             )
         elif self.version:
             self.match = lambda b: compare(self.version, b) in self.operator
@@ -123,7 +132,7 @@ class Requirement:
         version, operator, suffix = suffix.partition("+")
         _, lt, upper_bound = suffix.partition("<")
         if operator == "+":
-            operator = compare_op.lte
+            operator = compare_op.lte, compare_op.equal
         elif version:
             operator = compare_op.equal
             raw = f"=={version}"
@@ -133,7 +142,7 @@ class Requirement:
             raw,
             Version(version) if version else None,
             operator or None,
-            upper_bound or None,
+            Version(upper_bound) if upper_bound else None,
         )
 
 
@@ -159,7 +168,9 @@ def compare(a: Version, b: Version) -> compare_op:
 def sort(versions: list) -> list:
     return sorted(
         versions,
-        key=lambda x: [-1 if token is not int else x for token in Version(x).tokens],
+        key=lambda x: [
+            x if isinstance(token, int) else -1 for token in Version(x).tokens
+        ],
     )
 
 
