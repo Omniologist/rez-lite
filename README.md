@@ -1,1 +1,1 @@
-## rez clone written from scratch
+## rez clone written from scratch in python
