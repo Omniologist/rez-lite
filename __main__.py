@@ -68,13 +68,25 @@ def main():
 
 class PackageRepository:
     def __init__(self, repoPath):
+
         self.packages = defaultdict(list)
-        p = Path(repoPath)
-        for package in p.iterdir():
-            sp = Path(package)
-            for package_version in sp.iterdir():
-                package, version = str(package_version).split("/")[-2:]
+        self.packages_requires = defaultdict(list)
+        package_paths = Path(repoPath)
+
+        for package_path in package_paths.iterdir():
+            version_paths = Path(package_path)  # subpath
+
+            for version_path in version_paths.iterdir():
+                package, version = str(version_path).split("/")[-2:]
                 self.packages[package].append(version)
+                package_py_path = Path(version_path)
+
+                for pypath in package_py_path.iterdir():
+                    package_py = runpy.run_path(str(pypath))
+                    if "requires" in package_py.keys():
+                        self.packages_requires[package, version] = package_py[
+                            "requires"
+                        ]
 
     def summarise_repo(self):
         for key in self.packages.keys():
@@ -84,14 +96,31 @@ class PackageRepository:
         return self.packages[package]
 
     def resolve(self, packages):
+        # creating local copy for safety
+        packages = packages.copy()
+
         resolved = list()
-        for package in packages:
+        idx = 0
+        packages_len = len(packages)
+
+        # Setting up while loop to prevent possible undefined behaviour
+        while idx < packages_len:
+            package = packages[idx]
             requirement = Requirement(package)
             versions = sort(self.package_versions(requirement.name))
+
             for version in reversed(versions):
                 if requirement.match(Version(version)):
                     resolved.append(f"{requirement.name}-{version}")
+
+                    # concatenate requirements of current package list as new packages to resolve
+                    reqs = self.packages_requires[requirement.name, version]
+                    packages += reqs
+                    packages_len += len(reqs)
                     break
+
+            idx += 1
+
         return resolved
 
 
